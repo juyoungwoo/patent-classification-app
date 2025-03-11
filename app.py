@@ -47,8 +47,56 @@ if api_key and uploaded_file:
         )
         return response.choices[0].message.content.strip()
 
-    # 📊 대분류 분류 실행
-    df['대분류'] = df['특허명'].apply(lambda x: classify_major_category(x, category_df['대분류'].unique().tolist()))
+    def classify_mid_category(text, major_category, df):
+        mid_categories = df[df['대분류'] == major_category]['중분류'].unique().tolist()
+        prompt = f"""
+        특허명: {text}  
+        이 특허는 **'{major_category}' 대분류**에 속합니다.  
+        아래 목록에서 **가장 적절한 중분류 하나만** 출력하세요.  
+
+        가능 목록:
+        {', '.join(mid_categories)}
+
+        **출력: (오직 중분류 단어 하나만)**
+        """
+        response = client.chat.completions.create(
+            model="gpt-4-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=10,
+            temperature=0.2
+        )
+        return response.choices[0].message.content.strip()
+
+    def classify_sub_category(text, major_category, mid_category, df):
+        sub_categories = df[(df['대분류'] == major_category) & (df['중분류'] == mid_category)]['소분류'].unique().tolist()
+        prompt = f"""
+        특허명: {text}  
+        이 특허는 **'{major_category}' 대분류, '{mid_category}' 중분류**에 속합니다.  
+        아래 목록에서 **가장 적절한 소분류 하나만** 출력하세요.  
+
+        가능 목록:
+        {', '.join(sub_categories)}
+
+        **출력: (오직 소분류 단어 하나만)**
+        """
+        response = client.chat.completions.create(
+            model="gpt-4-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=10,
+            temperature=0.2
+        )
+        return response.choices[0].message.content.strip()
+
+    # ✅ 대/중/소 분류 적용
+    def classify_patent(row):
+        text = row["특허명"]
+        major_category = classify_major_category(text, category_df['대분류'].unique().tolist())
+        mid_category = classify_mid_category(text, major_category, category_df)
+        sub_category = classify_sub_category(text, major_category, mid_category, category_df)
+        return pd.Series([major_category, mid_category, sub_category])
+
+    # ✅ 데이터프레임에 적용 (대/중/소분류 모두 저장)
+    df[['대분류', '중분류', '소분류']] = df.apply(classify_patent, axis=1)
 
     # 결과 저장 및 다운로드
     output_file = "processed_patents.csv"
