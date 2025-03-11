@@ -6,8 +6,8 @@ import openai
 st.set_page_config(page_title="특허 분류", layout="wide")
 
 # 🔑 OpenAI API 키 입력
-st.title("📂 OpenAI 기반 특허 분류 웹 앱")
-api_key = st.text_input("🔑 OpenAI API 키를 입력하세요", type="password")
+st.title("📂 LLM 기반 특허명 표준산업기술분류 앱")
+api_key = st.text_input("🔑 API 키를 입력하세요", type="password")
 
 # 📂 표준산업기술분류표 (GitHub에서 읽음)
 @st.cache_data
@@ -16,8 +16,8 @@ def load_category_data():
 
 category_df = load_category_data()
 
-# 📂 CSV 파일 업로드
-uploaded_file = st.file_uploader("📂 CSV 파일을 업로드하세요", type="csv")
+# 📂 CSV 파일 업로드 
+uploaded_file = st.file_uploader("📂 특허명 CSV 파일을 업로드하세요", type="csv")
 
 if api_key and uploaded_file:
     # ✅ 최신 OpenAI API 방식 적용
