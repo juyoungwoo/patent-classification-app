@@ -12,7 +12,7 @@ api_key = st.text_input("🔑 OpenAI API 키를 입력하세요", type="password
 # 📂 표준산업기술분류표 (GitHub에서 읽음)
 @st.cache_data
 def load_category_data():
-    return pd.read_csv("category.csv", encoding="utf-8-sig")
+    return pd.read_csv("category.csv", encoding="utf-8")
 
 category_df = load_category_data()
 
@@ -24,14 +24,25 @@ if api_key and uploaded_file:
     client = openai.OpenAI(api_key=api_key)
 
     # 📊 CSV 데이터 로드
-    df = pd.read_csv(uploaded_file, encoding="utf-8-sig")
+    df = pd.read_csv(uploaded_file, encoding="utf-8")
 
-    # ✅ 데이터 정리: 공백 및 줄바꿈 문제 해결
+    # ✅ 데이터 정리: 개행 문자 및 탭 문자 제거
     df = df.applymap(lambda x: x.replace("\n", " ").replace("\t", " ") if isinstance(x, str) else x)
+
+    # ✅ CSS 적용 (긴 문자열 자동 줄바꿈)
+    st.markdown("""
+        <style>
+        div[data-testid="stDataFrame"] div[role="gridcell"] {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
     # ✅ 긴 문자열이 잘리지 않도록 설정
     st.write("📊 **업로드된 CSV 데이터**")
-    st.dataframe(df, height=600, width=1000)  # ✅ 넓이 & 높이 조정하여 자동 줄바꿈 방지
+    st.dataframe(df, height=600, use_container_width=True)  # ✅ 너비 자동 확장
 
     # 🔍 LLM 기반 분류 함수
     def classify_major_category(text, categories):
@@ -46,7 +57,7 @@ if api_key and uploaded_file:
         **출력: (오직 대분류 단어 하나만)**
         """
         response = client.chat.completions.create(
-            model="gpt-4-turbo",
+            model="gpt-4o-mini-2024-07-18",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=10,
             temperature=0.2
@@ -66,7 +77,7 @@ if api_key and uploaded_file:
         **출력: (오직 중분류 단어 하나만)**
         """
         response = client.chat.completions.create(
-            model="gpt-4-turbo",
+            model="gpt-4o-mini-2024-07-18",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=10,
             temperature=0.2
@@ -86,7 +97,7 @@ if api_key and uploaded_file:
         **출력: (오직 소분류 단어 하나만)**
         """
         response = client.chat.completions.create(
-            model="gpt-4-turbo",
+            model="gpt-4o-mini-2024-07-18",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=10,
             temperature=0.2
@@ -106,7 +117,7 @@ if api_key and uploaded_file:
 
     # ✅ 결과 확인: 데이터프레임 출력 (끊김 없이 정상 출력)
     st.write("📊 **분류된 데이터**")
-    st.dataframe(df, height=600, width=1000)  # ✅ 넓이 조정하여 가독성 개선
+    st.dataframe(df, height=600, use_container_width=True)  # ✅ 너비 자동 확장
 
     # ✅ 결과 저장 및 다운로드
     output_file = "processed_patents.csv"
