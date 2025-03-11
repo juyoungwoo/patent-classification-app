@@ -26,11 +26,12 @@ if api_key and uploaded_file:
     # 📊 CSV 데이터 로드
     df = pd.read_csv(uploaded_file, encoding="utf-8-sig")
 
-    # ✅ 데이터 정리: 줄바꿈 문제 해결
-    df = df.applymap(lambda x: x.replace("\n", " ") if isinstance(x, str) else x)
+    # ✅ 데이터 정리: 공백 및 줄바꿈 문제 해결
+    df = df.applymap(lambda x: x.replace("\n", " ").replace("\t", " ") if isinstance(x, str) else x)
 
+    # ✅ 긴 문자열이 잘리지 않도록 설정
     st.write("📊 **업로드된 CSV 데이터**")
-    st.dataframe(df)  # ✅ 줄바꿈을 허용하여 끊김 방지
+    st.dataframe(df, height=600, width=1000)  # ✅ 넓이 & 높이 조정하여 자동 줄바꿈 방지
 
     # 🔍 LLM 기반 분류 함수
     def classify_major_category(text, categories):
@@ -103,9 +104,9 @@ if api_key and uploaded_file:
     # ✅ 데이터프레임에 적용 (대/중/소분류 모두 저장)
     df[['대분류', '중분류', '소분류']] = df.apply(classify_patent, axis=1)
 
-    # ✅ 결과 확인: 데이터프레임 출력 (줄바꿈 정상 적용)
+    # ✅ 결과 확인: 데이터프레임 출력 (끊김 없이 정상 출력)
     st.write("📊 **분류된 데이터**")
-    st.dataframe(df)  # ✅ 데이터가 잘려서 나오지 않도록 조정
+    st.dataframe(df, height=600, width=1000)  # ✅ 넓이 조정하여 가독성 개선
 
     # ✅ 결과 저장 및 다운로드
     output_file = "processed_patents.csv"
