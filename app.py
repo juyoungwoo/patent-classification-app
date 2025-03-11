@@ -20,7 +20,8 @@ category_df = load_category_data()
 uploaded_file = st.file_uploader("📂 CSV 파일을 업로드하세요", type="csv")
 
 if api_key and uploaded_file:
-    openai.api_key = api_key
+    # ✅ 최신 OpenAI API 방식 적용
+    client = openai.OpenAI(api_key=api_key)
 
     # 📊 CSV 데이터 로드
     df = pd.read_csv(uploaded_file)
@@ -38,15 +39,15 @@ if api_key and uploaded_file:
         특허명: {text}  
         **출력: (오직 대분류 단어 하나만)**
         """
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4-turbo",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=10,
             temperature=0.2
         )
-        return response["choices"][0]["message"]["content"].strip()
+        return response.choices[0].message.content.strip()
 
-    # 📊 대/중/소 분류 실행
+    # 📊 대분류 분류 실행
     df['대분류'] = df['특허명'].apply(lambda x: classify_major_category(x, category_df['대분류'].unique().tolist()))
 
     # 결과 저장 및 다운로드
