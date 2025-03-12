@@ -6,8 +6,8 @@ import openai
 st.set_page_config(page_title="특허 분류", layout="wide")
 
 # 🔑 OpenAI API 키 입력
-st.title("📂 LLM 기반 특허명(=발명명칭) 표준산업기술분류 앱")
-api_key = st.text_input("🔑 API 키를 입력하세요", type="password")
+st.title("📂 LLM 기반 특허명(=발명명칭) 표준산업기술분류")
+api_key = st.text_input("🔑 OPENAI API 키를 입력하세요", type="password")
 
 # 📂 표준산업기술분류표 (GitHub에서 읽음)
 @st.cache_data
