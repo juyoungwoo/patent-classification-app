@@ -17,7 +17,7 @@ def load_category_data():
 category_df = load_category_data()
 
 # 📂 CSV 파일 업로드 
-uploaded_file = st.file_uploader("📂 발명명칭 CSV 파일을 업로드하세요(첫번째 행 제목이 '발명명칭'이어야 함", type="csv")
+uploaded_file = st.file_uploader("📂 발명명칭 CSV 파일을 업로드하세요(첫번째 행 제목이 '발명명칭'이어야 함)", type="csv")
 
 if api_key and uploaded_file:
     # ✅ 최신 OpenAI API 방식 적용
