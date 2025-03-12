@@ -6,7 +6,7 @@ import openai
 st.set_page_config(page_title="특허 분류", layout="wide")
 
 # 🔑 OpenAI API 키 입력
-st.title("📂 LLM 기반 특허명 표준산업기술분류 앱")
+st.title("📂 LLM 기반 특허명(=발명명칭) 표준산업기술분류 앱")
 api_key = st.text_input("🔑 API 키를 입력하세요", type="password")
 
 # 📂 표준산업기술분류표 (GitHub에서 읽음)
@@ -47,13 +47,13 @@ if api_key and uploaded_file:
     # 🔍 LLM 기반 분류 함수
     def classify_major_category(text, categories):
         prompt = f"""
-        다음 특허명을 보고 가장 적절한 대분류를 선택하세요.  
+        다음 발명명칭(=특허명)을 보고 가장 적절한 대분류를 선택하세요.  
         반드시 아래 목록 중 하나만 선택해야 합니다.  
 
         가능 목록:
         {', '.join(categories)}
 
-        특허명: {text}  
+        발명명칭: {text}  
         **출력: (오직 대분류 단어 하나만)**
         """
         response = client.chat.completions.create(
@@ -67,7 +67,7 @@ if api_key and uploaded_file:
     def classify_mid_category(text, major_category, df):
         mid_categories = df[df['대분류'] == major_category]['중분류'].unique().tolist()
         prompt = f"""
-        특허명: {text}  
+        발명명칭: {text}  
         이 특허는 **'{major_category}' 대분류**에 속합니다.  
         아래 목록에서 **가장 적절한 중분류 하나만** 출력하세요.  
 
@@ -87,7 +87,7 @@ if api_key and uploaded_file:
     def classify_sub_category(text, major_category, mid_category, df):
         sub_categories = df[(df['대분류'] == major_category) & (df['중분류'] == mid_category)]['소분류'].unique().tolist()
         prompt = f"""
-        특허명: {text}  
+        발명명칭: {text}  
         이 특허는 **'{major_category}' 대분류, '{mid_category}' 중분류**에 속합니다.  
         아래 목록에서 **가장 적절한 소분류 하나만** 출력하세요.  
 
@@ -106,7 +106,7 @@ if api_key and uploaded_file:
 
     # ✅ 대/중/소 분류 적용
     def classify_patent(row):
-        text = row["특허명"]
+        text = row["발명명칭"]
         major_category = classify_major_category(text, category_df['대분류'].unique().tolist())
         mid_category = classify_mid_category(text, major_category, category_df)
         sub_category = classify_sub_category(text, major_category, mid_category, category_df)
